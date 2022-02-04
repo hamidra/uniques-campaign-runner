@@ -269,6 +269,11 @@ const pinAndSetImageCid = async (wfConfig) => {
 
 const setInstanceMetadata = async (wfConfig) => {
   // 6- set metadata for instances
+  const instanceMetadata = wfConfig.instance.metadata;
+  if (!instanceMetadata && typeof instanceMetadata !== 'object' && !Object.keys(instanceMetadata).length) {
+    return;
+  }
+
   const context = getContext();
   const { startRecordNo, endRecordNo } = context.data;
   // read classId from checkpoint
@@ -308,7 +313,7 @@ const setInstanceMetadata = async (wfConfig) => {
   let lastBatch = context.batch.lastMetadataBatch || 0;
   let instanceMetadatas = [];
   for (let i = 0; i <= context.data.records.length; i++) {
-    metadata = {
+    const metadata = {
       instanceId: instanceIdColumn.records[i],
       metaCid: metaCidColumn.records[i],
     };
