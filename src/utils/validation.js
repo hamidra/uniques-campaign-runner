@@ -12,6 +12,9 @@ const errors = {
   pathNotExists: (name, path) => {
     return `${name} does not exist at the configured path: ${path}.`;
   },
+  pathHasWrongAccess: (path, accessLevel) => {
+    return `${path} does not have the right access: ${accessLevel}.`;
+  },
 };
 
 const throwError = (errorText) => { throw new WorkflowError(errorText); };
@@ -43,4 +46,19 @@ const validateFileExists = (filePath, errorText) => {
   }
 };
 
-module.exports = { throwError, validate, validateFileExists, validateElement, validateSection };
+const validateFileAccess = (filePath, accessLevel) => {
+  const ACCESS_LEVELS = {
+    all: fs.constants.F_OK,
+    read: fs.constants.R_OK,
+    write: fs.constants.W_OK,
+    execute: fs.constants.X_OK,
+  };
+
+  try {
+    fs.accessSync(filePath, ACCESS_LEVELS[accessLevel] || ACCESS_LEVELS.all);
+  } catch {
+    throwError(errors.pathHasWrongAccess(filePath, accessLevel));
+  }
+};
+
+module.exports = { throwError, validate, validateFileAccess, validateFileExists, validateElement, validateSection };

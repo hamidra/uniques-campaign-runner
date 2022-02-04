@@ -215,10 +215,12 @@ const loadContext = async (wfConfig) => {
   await context.load(wfConfig);
   return context;
 };
+
 const getContext = () => {
   if (!context.isLoaded) {
     throw new WorkflowError('The context for the workflow is not loaded.');
   }
   return context;
 };
+
 module.exports = { columnTitles: columnTitles, loadContext, getContext };
