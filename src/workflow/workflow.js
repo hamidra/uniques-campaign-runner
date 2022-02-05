@@ -271,6 +271,7 @@ const setInstanceMetadata = async (wfConfig) => {
   // 6- set metadata for instances
   const instanceMetadata = wfConfig.instance.metadata;
   if (!instanceMetadata && typeof instanceMetadata !== 'object' && !Object.keys(instanceMetadata).length) {
+    console.log('Skipped! No instance metadata is configured for the workflow');
     return;
   }
 
