@@ -46,16 +46,16 @@ const validateFileExists = (filePath, errorText) => {
   }
 };
 
-const validateFileAccess = (filePath, accessLevel) => {
+const validateFileAccess = (filePath, accessLevel = 'default') => {
   const ACCESS_LEVELS = {
-    all: fs.constants.F_OK,
     read: fs.constants.R_OK,
     write: fs.constants.W_OK,
     execute: fs.constants.X_OK,
+    default: fs.constants.F_OK, // fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK
   };
 
   try {
-    fs.accessSync(filePath, ACCESS_LEVELS[accessLevel] || ACCESS_LEVELS.all);
+    fs.accessSync(filePath, ACCESS_LEVELS[accessLevel]);
   } catch {
     throwError(errors.pathHasWrongAccess(filePath, accessLevel));
   }
