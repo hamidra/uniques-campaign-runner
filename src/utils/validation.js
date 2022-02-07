@@ -1,6 +1,6 @@
-const { WorkflowError } = require('../Errors');
 const get = require('lodash.get');
 const fs = require('fs');
+const { WorkflowError } = require('../Errors');
 
 const errors = {
   section: (section, configFile) => {
@@ -51,7 +51,7 @@ const validateFileAccess = (filePath, accessLevel = 'default') => {
     read: fs.constants.R_OK,
     write: fs.constants.W_OK,
     execute: fs.constants.X_OK,
-    default: fs.constants.F_OK, // fs.constants.R_OK | fs.constants.W_OK | fs.constants.X_OK
+    default: fs.constants.F_OK,
   };
 
   try {
