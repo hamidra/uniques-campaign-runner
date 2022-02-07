@@ -21,12 +21,9 @@ const createClass = async (wfConfig) => {
   // 1- create class
   const context = getContext();
   const { api, signingPair, proxiedAddress } = context.network;
-  if (!wfConfig.class?.id) {
-    throw new WorkflowError('No class id was found in workflow setting!');
-  }
 
   // if a valid class is not already created or does not exist, create the class
-  if (context.class.id == undefined || wfConfig.class?.id != context.class.id) {
+  if (context.class.id === undefined || wfConfig.class?.id !== context.class.id) {
     // check the specified class does not exist
     let cfgClassId = wfConfig.class?.id;
     let uniquesClass = await api.query.uniques.class(cfgClassId);
@@ -65,7 +62,7 @@ const setClassMetadata = async (wfConfig) => {
   // 2-generate/set class metadata
   const context = getContext();
 
-  if (context.class.id == undefined) {
+  if (context.class.id === undefined) {
     throw new WorkflowError(
       'No class.id checkpoint is recorded or the checkpoint is not in correct state'
     );
@@ -139,12 +136,11 @@ const generateGiftSecrets = async (wfConfig) => {
 const mintInstancesInBatch = async (wfConfig) => {
   //4- mint instances in batch
   const context = getContext();
-  const { api, signingPair, proxiedAddress } = context.network;
   const startRecordNo = context.data.startRecordNo;
   const endRecordNo = context.data.endRecordNo;
 
   // read classId from checkpoint
-  if (context.class.id == undefined) {
+  if (context.class.id === undefined) {
     throw new WorkflowError(
       'No classId checkpoint is recorded or the checkpoint is not in correct state'
     );
@@ -211,18 +207,12 @@ const pinAndSetImageCid = async (wfConfig) => {
   let context = getContext();
   const { startRecordNo, endRecordNo } = context.data;
 
-  const { name, description, imageFolder, extension } =
-    wfConfig?.instance?.metadata;
-  if (!fs.existsSync(imageFolder)) {
-    throw new WorkflowError(
-      `The instance image folder :${imageFolder} does not exist!`
-    );
-  }
+  const { name, description, imageFolder, extension } = wfConfig?.instance?.metadata;
   for (let i = startRecordNo; i < endRecordNo; i++) {
     // check the image files exist
     let imageFile = path.join(imageFolder, `${i + 2}.${extension}`);
     if (!fs.existsSync(imageFile)) {
-      // ToDo: instead of throwing ask if the user wants to continue by skipping minting for those rows
+      // TODO: instead of throwing ask if the user wants to continue by skipping minting for those rows
       throw new WorkflowError(
         `imageFile: ${imageFile} does not exist to be minted for row:${i + 2}`
       );
@@ -279,7 +269,7 @@ const setInstanceMetadata = async (wfConfig) => {
   const context = getContext();
   const { startRecordNo, endRecordNo } = context.data;
   // read classId from checkpoint
-  if (context.class.id == null) {
+  if (context.class.id === undefined) {
     throw new WorkflowError(
       'No classId checkpoint is recorded or the checkpoint is not in correct state'
     );
@@ -355,7 +345,6 @@ const sendInitialFunds = async (wfConfig) => {
   }
 
   const context = getContext();
-  const { api, signingPair, proxiedAddress } = context.network;
   const startRecordNo = context.data.startRecordNo;
   const endRecordNo = context.data.endRecordNo;
 
@@ -412,7 +401,9 @@ const verifyWorkflow = async (wfConfig) => {
   }
 };
 
-const runWorkflow = async (configFile = './src/workflow.json') => {
+const runWorkflow = async (configFile, dryRunMode) => {
+  if (dryRunMode) console.log('dry-run mode is on');
+
   console.log('loading the workflow config ...');
   let { error, config } = parseConfig(configFile);
 
@@ -428,6 +419,12 @@ const runWorkflow = async (configFile = './src/workflow.json') => {
 
   // 0- run various checks
   await verifyWorkflow(config);
+
+  if (dryRunMode) {
+    console.log('dry-run finished.');
+    console.log('the workflow looks correct, you can proceed now in a regular mode');
+    return;
+  }
 
   // 1- create class
   console.info('\n\nCreating the uniques class ...');
