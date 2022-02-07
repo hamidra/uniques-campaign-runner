@@ -53,7 +53,11 @@ const context = {
 
     // Create checkpoint path if it does not exist
     if (!fs.existsSync(checkpointFolderPath)) {
-      fs.mkdirSync(checkpointFolderPath);
+      try {
+        fs.mkdirSync(checkpointFolderPath);
+      } catch {
+        throw new WorkflowError(`Unable to create ${checkpointFolderPath} folder. Please check if the parent dir has a write access`);
+      }
     }
     this.class.load(wfConfig);
     this.batch.load(wfConfig);
