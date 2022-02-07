@@ -400,7 +400,7 @@ const verifyWorkflow = async (wfConfig) => {
     const { existentialDeposit } = api.consts.balances;
     if (existentialDeposit.gt(new BN(initialFund))) {
       throw new WorkflowError(
-        `instance.initialFund should be bigger to existential deposit (${existentialDeposit.toNumber()})`
+        `instance.initialFund should be bigger than existential deposit (${existentialDeposit.toNumber()})`
       );
     }
   }
