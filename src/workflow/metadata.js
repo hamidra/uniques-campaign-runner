@@ -1,6 +1,7 @@
-const { signAndSendTx } = require('../chain/txHandler');
 const fs = require('fs');
 const path = require('path');
+const { signAndSendTx } = require('../chain/txHandler');
+const { WorkflowError } = require('../Errors');
 
 const generateMetadata = async (pinataClient, name, description, imageFile) => {
   // pin image
@@ -24,7 +25,7 @@ const generateMetadata = async (pinataClient, name, description, imageFile) => {
     throw new WorkflowError(`failed to pin image.`);
   }
 
-  // create metatdata
+  // create metadata
   let metadata = {
     name: name,
     image: `ipfs://ipfs/${imageCid}`,
@@ -33,7 +34,7 @@ const generateMetadata = async (pinataClient, name, description, imageFile) => {
 
   let metadataStr = JSON.stringify(metadata, null, 2);
 
-  // save matadat in the file
+  // save matadata in the file
   fs.writeFileSync(metaPath, metadataStr, { encoding: 'utf8' });
 
   // pin metadata

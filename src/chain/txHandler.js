@@ -23,7 +23,7 @@ const decodeResult = (api, result) => {
   return { success, events, error };
 };
 
-exports.signAndSendTx = async (api, tx, signingPair, finalize = true) => {
+exports.signAndSendTx = async (api, tx, signingPair, finalize = true, dryRun = false) => {
   return new Promise((resolve, reject) => {
     let cb = ({ success, events, error }) => {
       if (!success) {
@@ -33,6 +33,12 @@ exports.signAndSendTx = async (api, tx, signingPair, finalize = true) => {
     };
     let signAndSendAsync = async () => {
       try {
+        if (dryRun) {
+          const check = await api.rpc.system.dryRun(tx);
+          console.log(check);
+          return;
+        }
+
         let dispatchResult;
         const unsub = await tx.signAndSend(signingPair, (callResult) => {
           const { status, ...result } = callResult;

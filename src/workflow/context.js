@@ -75,6 +75,7 @@ const context = {
     }
   },
   network: undefined,
+  dryRun: false,
   pinataClient: undefined,
   class: {
     id: undefined,

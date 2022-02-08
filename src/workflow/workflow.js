@@ -22,6 +22,7 @@ const createClass = async (wfConfig) => {
   // 1- create class
   const context = getContext();
   const { api, signingPair, proxiedAddress } = context.network;
+  const { dryRun } = context;
 
   // if a valid class is not already created or does not exist, create the class
   if (context.class.id === undefined || wfConfig.class?.id !== context.class.id) {
@@ -52,10 +53,10 @@ const createClass = async (wfConfig) => {
       let call = proxiedAddress
         ? api.tx.proxy.proxy(proxiedAddress, 'Assets', tx)
         : tx;
-      await signAndSendTx(api, call, signingPair);
+      await signAndSendTx(api, call, signingPair, true, dryRun);
     }
     // set the class checkpoint
-    context.class.checkpoint();
+    if (!dryRun) context.class.checkpoint();
   }
 };
 
@@ -137,8 +138,7 @@ const generateGiftSecrets = async (wfConfig) => {
 const mintInstancesInBatch = async (wfConfig) => {
   //4- mint instances in batch
   const context = getContext();
-  const startRecordNo = context.data.startRecordNo;
-  const endRecordNo = context.data.endRecordNo;
+  const { startRecordNo, endRecordNo } = context.data;
 
   // read classId from checkpoint
   if (context.class.id === undefined) {
@@ -149,9 +149,8 @@ const mintInstancesInBatch = async (wfConfig) => {
 
   let [addressColumn] = context.data.getColumns([columnTitles.address]);
   if (
-    !addressColumn.records ||
-    !addressColumn.records[startRecordNo] ||
-    !addressColumn.records[endRecordNo - 1]
+    !addressColumn.records?.[startRecordNo] ||
+    !addressColumn.records?.[endRecordNo - 1]
   ) {
     throw new WorkflowError(
       'No address checkpoint is recorded or the checkpoint is not in a correct state.'
@@ -208,7 +207,10 @@ const pinAndSetImageCid = async (wfConfig) => {
   let context = getContext();
   const { startRecordNo, endRecordNo } = context.data;
 
-  const { name, description, imageFolder, extension } = wfConfig?.instance?.metadata;
+  const instanceMetadata = wfConfig?.instance?.metadata;
+  if (!isNonEmptyObject(instanceMetadata)) return;
+
+  const { name, description, imageFolder, extension } = instanceMetadata;
 
   const [imageCidColumn, metaCidColumn] = context.data.getColumns([
     columnTitles.imageCid,
@@ -251,8 +253,8 @@ const pinAndSetImageCid = async (wfConfig) => {
 
 const setInstanceMetadata = async (wfConfig) => {
   // 6- set metadata for instances
-  const instanceMetadata = wfConfig.instance.metadata;
-  if (!instanceMetadata && typeof instanceMetadata !== 'object' && !Object.keys(instanceMetadata).length) {
+  const instanceMetadata = wfConfig?.instance?.metadata;
+  if (!isNonEmptyObject(instanceMetadata)){
     console.log('Skipped! No instance metadata is configured for the workflow');
     return;
   }
@@ -272,9 +274,8 @@ const setInstanceMetadata = async (wfConfig) => {
   ]);
 
   if (
-    !metaCidColumn.records ||
-    !metaCidColumn.records[startRecordNo] ||
-    !metaCidColumn.records[endRecordNo - 1]
+    !metaCidColumn.records?.[startRecordNo] ||
+    !metaCidColumn.records?.[endRecordNo - 1]
   ) {
     throw new WorkflowError(
       'No metadata checkpoint is recorded or the checkpoint is not in a correct state.'
@@ -282,9 +283,8 @@ const setInstanceMetadata = async (wfConfig) => {
   }
 
   if (
-    !instanceIdColumn.records ||
-    !instanceIdColumn.records[startRecordNo] ||
-    !instanceIdColumn.records[endRecordNo - 1]
+    !instanceIdColumn.records?.[startRecordNo] ||
+    !instanceIdColumn.records?.[endRecordNo - 1]
   ) {
     throw new WorkflowError(
       'No instanceId checkpoint is recorded or the checkpoint is not in a correct state.'
@@ -294,6 +294,7 @@ const setInstanceMetadata = async (wfConfig) => {
   // set the metadata for instances in batch
   let batchSize = parseInt(wfConfig?.instance?.batchSize) || 100;
   let lastBatch = context.batch.lastMetadataBatch || 0;
+
   let instanceMetadatas = [];
   for (let i = 0; i <= context.data.records.length; i++) {
     const metadata = {
@@ -302,6 +303,7 @@ const setInstanceMetadata = async (wfConfig) => {
     };
     instanceMetadatas.push(metadata);
   }
+
   while (startRecordNo + lastBatch * batchSize < endRecordNo) {
     console.log(`Sending batch number ${lastBatch + 1}`);
     let batchStartRecordNo = startRecordNo + lastBatch * batchSize;
@@ -409,9 +411,20 @@ const verifyWorkflow = async (wfConfig) => {
   }
 };
 
-const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
-  if (dryRunMode) console.log('dry-run mode is on');
+const enableDryRun = async () => {
+  const context = getContext();
+  const { api } = context.network;
 
+  // validate transactions
+  if (!api.rpc.system.dryRun) {
+    throw new WorkflowError('Dry-run mode is not supported on this network');
+  }
+
+  context.dryRun = true;
+  console.log('dry-run mode is on');
+};
+
+const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
   console.log('loading the workflow config ...');
   let { error, config } = parseConfig(configFile);
 
@@ -429,15 +442,13 @@ const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
   await verifyWorkflow(config);
 
   if (dryRunMode) {
-    console.log('dry-run finished.');
-    console.log('the workflow looks correct, you can proceed now in a regular mode');
-    return;
+    await enableDryRun();
   }
 
   // 1- create class
   console.info('\n\nCreating the uniques class ...');
   await createClass(config);
-
+  return;
   // 2- set classMetadata
   console.info('\n\nSetting class metadata ...');
   await setClassMetadata(config);

@@ -66,7 +66,7 @@ Note:
 - the _proxiedAddress_ is optional, and if is provided the account that is derived from the _accountSeed_ will be considered a proxy account and all the extrinsic calls will be sent as a proxy call on behalf of the proxiedAddress.
 - The data file specified by `instance.data.csvFile` is a csv file, which the number of rows in the file specifies the maximum number of instances that can be minted. If specified, the combination of offset and count determines the actual number of instances that are going to be minted.
 - The offset specifies the first row number in the csv datafile that the instances will be minted from that row up to the specified count.
-- If the calculated row numbers fall outside of the number of rows in the csv file (e.x. `offset+count-1 > last_row_number_in_the_file`) the minting will stop after the last row number.
+- If the calculated row numbers fall outside the number of rows in the csv file (e.x. `offset+count-1 > last_row_number_in_the_file`) the minting will stop after the last row number.
 - The `instance.metadata.extension` specifies the extension for the media files and the `instance.metadata.imageFolder` specifies the folder that contains the media files that are going to be minted. the files in that folder should be named according to the row number in the csv datafile. e.x. for `extension: "jpg"` the file `<imageFolder>/1.jpg` will be minted for the first row and `<imageFolder>/2.jpg` for the second row and and so on.
 
 ## Running a workflow
@@ -75,6 +75,12 @@ To run the workflow you need to execute the cli while passing a workflow configu
 
 ```
 uniqcamp <path to workflow.json>
+```
+
+There is an optional parameter available for the dry-run. It will validate the workflow without submitting transactions.
+
+```
+uniqcamp <path to workflow.json> --dry-run
 ```
 
 After the minted process is complete a final .csv data file which includes the gift secret codes will be generated at the same path as input datafile (specified by `instance.data.csvFile`)
