@@ -198,7 +198,7 @@ const mintInstancesInBatch = async (wfConfig) => {
       instanceIdColumn.records.push('');
     }
     if (i >= startRecordNo && i < endRecordNo) {
-      instanceIdColumn.records[i] = currentInstanceId + 1;
+      instanceIdColumn.records[i] = currentInstanceId;
       currentInstanceId += 1;
     }
   }
@@ -271,7 +271,11 @@ const pinAndSetImageCid = async (wfConfig) => {
 const setInstanceMetadata = async (wfConfig) => {
   // 6- set metadata for instances
   const instanceMetadata = wfConfig.instance.metadata;
-  if (!instanceMetadata && typeof instanceMetadata !== 'object' && !Object.keys(instanceMetadata).length) {
+  if (
+    !instanceMetadata &&
+    typeof instanceMetadata !== 'object' &&
+    !Object.keys(instanceMetadata).length
+  ) {
     console.log('Skipped! No instance metadata is configured for the workflow');
     return;
   }
@@ -302,8 +306,10 @@ const setInstanceMetadata = async (wfConfig) => {
 
   if (
     !instanceIdColumn.records ||
-    !instanceIdColumn.records[startRecordNo] ||
-    !instanceIdColumn.records[endRecordNo - 1]
+    (!instanceIdColumn.records[startRecordNo] &&
+      instanceIdColumn.records[startRecordNo] !== 0) ||
+    (!instanceIdColumn.records[endRecordNo - 1] &&
+      instanceIdColumn.records[endRecordNo - 1] !== 0)
   ) {
     throw new WorkflowError(
       'No instanceId checkpoint is recorded or the checkpoint is not in a correct state.'
