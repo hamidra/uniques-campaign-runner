@@ -1,6 +1,6 @@
 const path = require('path');
 const {
-  isNonEmptyObject,
+  isEmptyObject,
   validate,
   validateFileAccess,
   validateFileExists,
@@ -60,7 +60,7 @@ const parseConfig = (cfile) => {
 
     // instance.metadata
     const instanceMetadata = configJson.instance.metadata;
-    if (isNonEmptyObject(instanceMetadata)) {
+    if (!isEmptyObject(instanceMetadata)) {
       validateSection(configJson, 'instance.metadata', configFile);
       validateElement(configJson, 'instance.metadata.imageFolder', configFile);
 

@@ -16,7 +16,7 @@ const inqAsk = inquirer.createPromptModule();
 const { parseConfig } = require('./wfConfig');
 const { WorkflowError } = require('../Errors');
 const { fillTemplateFromData } = require('../utils/csv');
-const { isNonEmptyObject } = require('../utils/validation');
+const { isEmptyObject } = require('../utils/validation');
 
 const createClass = async (wfConfig) => {
   // 1- create class
@@ -208,7 +208,7 @@ const pinAndSetImageCid = async (wfConfig) => {
   const { startRecordNo, endRecordNo } = context.data;
 
   const instanceMetadata = wfConfig?.instance?.metadata;
-  if (!isNonEmptyObject(instanceMetadata)) return;
+  if (isEmptyObject(instanceMetadata)) return;
 
   const { name, description, imageFolder, extension } = instanceMetadata;
 
@@ -254,7 +254,7 @@ const pinAndSetImageCid = async (wfConfig) => {
 const setInstanceMetadata = async (wfConfig) => {
   // 6- set metadata for instances
   const instanceMetadata = wfConfig?.instance?.metadata;
-  if (!isNonEmptyObject(instanceMetadata)){
+  if (isEmptyObject(instanceMetadata)){
     console.log('Skipped! No instance metadata is configured for the workflow');
     return;
   }
@@ -397,7 +397,7 @@ const verifyWorkflow = async (wfConfig) => {
 
   // check image files
   const instanceMetadata = wfConfig?.instance?.metadata;
-  if (isNonEmptyObject(instanceMetadata)) {
+  if (!isEmptyObject(instanceMetadata)) {
     const { imageFolder, extension } = instanceMetadata;
 
     for (let i = startRecordNo; i < endRecordNo; i++) {
