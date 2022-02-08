@@ -61,4 +61,16 @@ const validateFileAccess = (filePath, accessLevel = 'default') => {
   }
 };
 
-module.exports = { throwError, validate, validateFileAccess, validateFileExists, validateElement, validateSection };
+const isNonEmptyObject = (obj) => {
+  return obj && typeof obj === 'object' && Object.keys(obj).length;
+}
+
+module.exports = {
+  throwError,
+  isNonEmptyObject,
+  validate,
+  validateFileAccess,
+  validateFileExists,
+  validateElement,
+  validateSection,
+};

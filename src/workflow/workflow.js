@@ -16,6 +16,7 @@ const inqAsk = inquirer.createPromptModule();
 const { parseConfig } = require('./wfConfig');
 const { WorkflowError } = require('../Errors');
 const { fillTemplateFromData } = require('../utils/csv');
+const { isNonEmptyObject } = require('../utils/validation');
 
 const createClass = async (wfConfig) => {
   // 1- create class
@@ -208,16 +209,6 @@ const pinAndSetImageCid = async (wfConfig) => {
   const { startRecordNo, endRecordNo } = context.data;
 
   const { name, description, imageFolder, extension } = wfConfig?.instance?.metadata;
-  for (let i = startRecordNo; i < endRecordNo; i++) {
-    // check the image files exist
-    let imageFile = path.join(imageFolder, `${i + 2}.${extension}`);
-    if (!fs.existsSync(imageFile)) {
-      // TODO: instead of throwing ask if the user wants to continue by skipping minting for those rows
-      throw new WorkflowError(
-        `imageFile: ${imageFile} does not exist to be minted for row:${i + 2}`
-      );
-    }
-  }
 
   const [imageCidColumn, metaCidColumn] = context.data.getColumns([
     columnTitles.imageCid,
@@ -390,7 +381,9 @@ const verifyWorkflow = async (wfConfig) => {
 
   const context = getContext();
   const { api } = context.network;
+  const { startRecordNo, endRecordNo } = context.data;
 
+  // validate initial fund
   if (initialFund) {
     const { existentialDeposit } = api.consts.balances;
     if (existentialDeposit.gt(new BN(initialFund))) {
@@ -399,9 +392,24 @@ const verifyWorkflow = async (wfConfig) => {
       );
     }
   }
+
+  // check image files
+  const instanceMetadata = wfConfig?.instance?.metadata;
+  if (isNonEmptyObject(instanceMetadata)) {
+    const { imageFolder, extension } = instanceMetadata;
+
+    for (let i = startRecordNo; i < endRecordNo; i++) {
+      const imageFile = path.join(imageFolder, `${i + 2}.${extension}`);
+      if (!fs.existsSync(imageFile)) {
+        throw new WorkflowError(
+          `imageFile: ${imageFile} does not exist to be minted for row: ${i + 2}`
+        );
+      }
+    }
+  }
 };
 
-const runWorkflow = async (configFile, dryRunMode) => {
+const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
   if (dryRunMode) console.log('dry-run mode is on');
 
   console.log('loading the workflow config ...');
