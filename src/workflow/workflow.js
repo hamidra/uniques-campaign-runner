@@ -305,11 +305,8 @@ const setInstanceMetadata = async (wfConfig) => {
   }
 
   if (
-    !instanceIdColumn.records ||
-    (!instanceIdColumn.records[startRecordNo] &&
-      instanceIdColumn.records[startRecordNo] !== 0) ||
-    (!instanceIdColumn.records[endRecordNo - 1] &&
-      instanceIdColumn.records[endRecordNo - 1] !== 0)
+    isNaN(instanceIdColumn?.records?.[startRecordNo]) ||
+    isNaN(instanceIdColumn?.records?.[endRecordNo - 1])
   ) {
     throw new WorkflowError(
       'No instanceId checkpoint is recorded or the checkpoint is not in a correct state.'
