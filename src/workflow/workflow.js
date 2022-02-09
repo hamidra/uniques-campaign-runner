@@ -456,7 +456,12 @@ const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
   await verifyWorkflow(config);
 
   if (dryRunMode) {
-    await enableDryRun();
+    // TODO: uncomment once we find a true way to detect that method on rpc nodes
+    // await enableDryRun();
+
+    // temporary code
+    console.log('\ndry-run check successfully finished');
+    return;
   }
 
   // 1- create class
