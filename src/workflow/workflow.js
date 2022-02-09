@@ -2,6 +2,8 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const BN = require('bn.js');
+const chalk = require('chalk');
+
 const {
   generateAndSetClassMetadata,
   generateMetadata,
@@ -17,6 +19,9 @@ const { parseConfig } = require('./wfConfig');
 const { WorkflowError } = require('../Errors');
 const { fillTemplateFromData } = require('../utils/csv');
 const { isNumber, isEmptyObject } = require('../utils');
+
+const successMessage = chalk.green;
+const stepTitle = chalk.underline;
 
 const createClass = async (wfConfig) => {
   // 1- create class
@@ -133,7 +138,11 @@ const generateGiftSecrets = async (wfConfig) => {
   }
   if (isUpdated) {
     context.data.setColumns([secretColumn, addressColumn]);
-    if (!dryRun) context.data.checkpoint();
+    if (!dryRun) {
+      context.data.checkpoint();
+    } else {
+      console.log(successMessage('secrets generated'));
+    }
   }
 };
 
@@ -449,19 +458,17 @@ const enableDryRun = async () => {
   }
 
   context.dryRun = true;
-  console.log('\ndry-run mode is on');
+  console.log(chalk.bold`\ndry-run mode is on`);
 };
 
 const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
-  console.log('loading the workflow config ...');
+  console.log('> loading the workflow config ...');
   let { error, config } = parseConfig(configFile);
 
   if (error) {
-    throw new WorkflowError(
-      `there was an error while loading the workflow config: ${error}`
-    );
+    throw new WorkflowError(error);
   }
-  console.log('setting the context for the workflow ...');
+  console.log('> setting the context for the workflow ...');
 
   await checkPreviousCheckpoints();
   await loadContext(config);
@@ -480,38 +487,38 @@ const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
   }
 
   // 1- create class
-  console.info('\n\nCreating the uniques class ...');
+  console.info(stepTitle`\n\nCreating the uniques class ...`);
   await createClass(config);
 
   // 2- set classMetadata
-  console.info('\n\nSetting class metadata ...');
+  console.info(stepTitle`\n\nSetting class metadata ...`);
   await setClassMetadata(config);
 
   // 3- generate secrets
-  console.info('\n\nGenerating gift secrets ...');
+  console.info(stepTitle`\n\nGenerating gift secrets ...`);
   await generateGiftSecrets(config);
 
   //4- mint instances in batch
-  console.info('\n\nMinting nft instances ...');
+  console.info(stepTitle`\n\nMinting nft instances ...`);
   await mintInstancesInBatch(config);
 
   //5- pin images and generate metadata
-  console.info('\n\nUploading and pinning the nfts on IPFS ...');
+  console.info(stepTitle`\n\nUploading and pinning the NFTs on IPFS ...`);
   await pinAndSetImageCid(config);
 
   //6- set metadata for instances
-  console.info('\n\nSetting the instance metadata on chain ...');
+  console.info(stepTitle`\n\nSetting the instance metadata on chain ...`);
   await setInstanceMetadata(config);
 
   //7-fund gift accounts with the initialFund amount.
-  console.info('\n\nSeeding the accounts with initial funds ...');
+  console.info(stepTitle`\n\nSeeding the accounts with initial funds ...`);
   await sendInitialFunds(config);
 
   if (!dryRunMode) {
     // move the final data file to the output path, cleanup the checkpoint files.
     let outFilename = config?.instance?.data?.outputCsvFile;
     context.data.writeFinalResult(outFilename);
-    console.info(`\n\nThe final datafile is copied at \n ${outFilename}`);
+    console.info(chalk.bold`\n\nThe final datafile is copied at \n ${outFilename}`);
   }
 
   // cleanup the workspace, remove checkpoint files
