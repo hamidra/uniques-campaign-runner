@@ -45,6 +45,17 @@ const getCheckpointRecords = (file) => {
   }
 };
 
+const removeCheckpoints = () => {
+  try {
+    if (fs.existsSync(cpfiles.batch)) fs.unlinkSync(cpfiles.batch);
+    if (fs.existsSync(cpfiles.data)) fs.unlinkSync(cpfiles.data);
+    if (fs.existsSync(cpfiles.class)) fs.unlinkSync(cpfiles.class);
+    if (fs.existsSync(checkpointFolderPath)) fs.rmdirSync(checkpointFolderPath);
+  } catch (err) {
+    console.error(err);
+  }
+};
+
 const context = {
   isLoaded: false,
   load: async function (wfConfig) {
@@ -65,14 +76,7 @@ const context = {
     this.isLoaded = true;
   },
   clean: function () {
-    try {
-      fs.unlinkSync(cpfiles.batch);
-      fs.unlinkSync(cpfiles.data);
-      fs.unlinkSync(cpfiles.class);
-      fs.rmdirSync(checkpointFolderPath);
-    } catch (err) {
-      console.error(err);
-    }
+    removeCheckpoints();
   },
   network: undefined,
   dryRun: false,

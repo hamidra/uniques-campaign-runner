@@ -11,7 +11,7 @@ program
   .option('--dry-run', 'Enable dry-run')
   .action(async (workflowConfig, options) => {
     await runWorkflow(workflowConfig, options.dryRun ?? false);
-    console.log('done!');
+    console.log('\ndone!');
   });
 
 program
