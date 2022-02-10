@@ -16,6 +16,7 @@ const inqAsk = inquirer.createPromptModule();
 const { parseConfig } = require('./wfConfig');
 const { WorkflowError } = require('../Errors');
 const { fillTemplateFromData } = require('../utils/csv');
+const { isNumber } = require('../utils');
 
 const createClass = async (wfConfig) => {
   // 1- create class
@@ -305,8 +306,8 @@ const setInstanceMetadata = async (wfConfig) => {
   }
 
   if (
-    isNaN(instanceIdColumn?.records?.[startRecordNo]) ||
-    isNaN(instanceIdColumn?.records?.[endRecordNo - 1])
+    !isNumber(instanceIdColumn?.records?.[startRecordNo]) ||
+    !isNumber(instanceIdColumn?.records?.[endRecordNo - 1])
   ) {
     throw new WorkflowError(
       'No instanceId checkpoint is recorded or the checkpoint is not in a correct state.'
