@@ -17,7 +17,7 @@ describe('general utility tests', () => {
     expect(isNumber(false)).toBe(false);
   });
 
-  it('test isNumber', () => {
+  it('test isEmptyObject', () => {
     expect(isEmptyObject(null)).toBe(true);
     expect(isEmptyObject({})).toBe(true);
     expect(isEmptyObject([])).toBe(true);
