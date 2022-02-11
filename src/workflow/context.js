@@ -236,7 +236,7 @@ const getContext = () => {
 };
 
 const checkPreviousCheckpoints = async () => {
-  const checkpointExists = fs.existsSync(cpfiles.class) || fs.existsSync(cpfiles.batch);
+  const checkpointExists = fs.existsSync(cpfiles.class) || fs.existsSync(cpfiles.batch) || fs.existsSync(cpfiles.data);
   if (!checkpointExists) return;
 
   const answer = (await inqAsk([
