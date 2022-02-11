@@ -18,6 +18,10 @@ program
   .parseAsync(process.argv)
   .then(() => process.exit(0))
   .catch((err) => {
-    console.error(err?.message ?? err);
+    if (err instanceof WorkflowError) {
+      console.error(err?.message);
+    } else {
+      console.error(err);
+    }
     process.exit(1);
   });
