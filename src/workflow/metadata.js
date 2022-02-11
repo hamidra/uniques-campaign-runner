@@ -1,6 +1,5 @@
 const fs = require('fs');
 const path = require('path');
-const { randomAsHex } = require('@polkadot/util-crypto');
 const { signAndSendTx } = require('../chain/txHandler');
 const { WorkflowError } = require('../Errors');
 
@@ -61,8 +60,6 @@ let setMetadataInBatch = async (connection, classId, instanceMetaCids, dryRun) =
     ? api.tx.proxy.proxy(proxiedAddress, 'Assets', txBatch)
     : txBatch;
   await signAndSendTx(api, call, signingPair, true, dryRun);
-
-  if (!dryRun) console.log(call.toHuman());
 };
 
 let setClassMetadata = async (connection, classId, metadataCid, dryRun) => {
@@ -80,24 +77,18 @@ const generateAndSetClassMetadata = async (
   connection,
   pinataClient,
   classId,
-  metadata,
-  dryRun = false
+  metadata
 ) => {
   let { name, description, imageFile } = metadata;
-  let metaCid;
 
-  if (!dryRun) {
-    ({ metaCid } = await generateMetadata(
-      pinataClient,
-      name,
-      description,
-      imageFile
-    ));
-  } else {
-    metaCid = randomAsHex(23).replace('0x', '');
-  }
+  const { metaCid } = await generateMetadata(
+    pinataClient,
+    name,
+    description,
+    imageFile
+  );
 
-  await setClassMetadata(connection, classId, metaCid, dryRun);
+  await setClassMetadata(connection, classId, metaCid);
 
   return metaCid;
 };
