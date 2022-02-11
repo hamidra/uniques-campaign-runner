@@ -35,6 +35,9 @@ const parseConfig = (cfile) => {
     if (configJson.class.metadata?.imageFile) {
       validateFileExists(path.resolve(configJson.class.metadata.imageFile), 'class.metadata.imageFile');
     }
+    if (configJson.class.metadata?.videoFile) {
+      validateFileExists(path.resolve(configJson.class.metadata.videoFile), 'class.metadata.videoFile');
+    }
 
     // instance
     validateSection(configJson, 'instance', configFile);
@@ -65,13 +68,24 @@ const parseConfig = (cfile) => {
       validateElement(configJson, 'instance.metadata.imageFile', configFile);
 
       const parts = instanceMetadata.imageFile.split('/');
-      const fileNameTemplate = parts.pop();
+      const imageFileNameTemplate = parts.pop();
       const imageFolder = parts.join('/');
 
       configJson.instance.metadata.imageFolder = path.resolve(imageFolder);
-      configJson.instance.metadata.fileNameTemplate = fileNameTemplate;
+      configJson.instance.metadata.imageFileNameTemplate = imageFileNameTemplate;
 
       validateFileExists(configJson.instance.metadata.imageFolder, 'instance.metadata.imageFile');
+
+      if (instanceMetadata.videoFile) {
+        const parts = instanceMetadata.videoFile.split('/');
+        const videoFileNameTemplate = parts.pop();
+        const videoFolder = parts.join('/');
+
+        configJson.instance.metadata.videoFolder = path.resolve(videoFolder);
+        configJson.instance.metadata.videoFileNameTemplate = videoFileNameTemplate;
+
+        validateFileExists(configJson.instance.metadata.videoFolder, 'instance.metadata.videoFile');
+      }
 
       validateElement(configJson, 'instance.metadata.name', configFile);
       validateElement(configJson, 'instance.metadata.description', configFile);
