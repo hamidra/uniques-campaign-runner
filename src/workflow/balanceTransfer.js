@@ -13,8 +13,6 @@ let transferFunds = async (network, owners, amount, dryRun) => {
     ? api.tx.proxy.proxy(proxiedAddress, 'Assets', txBatch)
     : txBatch;
   await signAndSendTx(api, call, signingPair, true, dryRun);
-
-  if (!dryRun) console.log(call.toHuman());
 };
 
 module.exports = { transferFunds };
