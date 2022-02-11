@@ -95,8 +95,7 @@ const setClassMetadata = async (wfConfig) => {
         context.network,
         context.pinataClient,
         context.class.id,
-        metadata,
-        dryRun
+        metadata
       );
       // update class checkpoint
       if (!dryRun) context.class.checkpoint();
