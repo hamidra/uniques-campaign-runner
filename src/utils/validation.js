@@ -61,13 +61,8 @@ const validateFileAccess = (filePath, accessLevel = 'default') => {
   }
 };
 
-const isEmptyObject = (obj) => {
-  return !obj || typeof obj !== 'object' || !Object.keys(obj).length;
-}
-
 module.exports = {
   throwError,
-  isEmptyObject,
   validate,
   validateFileAccess,
   validateFileExists,

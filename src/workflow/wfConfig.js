@@ -1,6 +1,6 @@
 const path = require('path');
+const { isEmptyObject } = require('../utils');
 const {
-  isEmptyObject,
   validate,
   validateFileAccess,
   validateFileExists,

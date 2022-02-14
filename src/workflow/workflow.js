@@ -2,7 +2,6 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const path = require('path');
 const BN = require('bn.js');
-const { randomAsHex } = require('@polkadot/util-crypto');
 const {
   generateAndSetClassMetadata,
   generateMetadata,
