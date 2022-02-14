@@ -5,16 +5,19 @@ const { WorkflowError } = require('../Errors');
 
 const generateMetadata = async (pinataClient, name, description, imageFile, videoFile) => {
   // validate image
-  let imagePath = path.resolve(imageFile);
-  if (!fs.existsSync(imagePath)) {
-    throw new WorkflowError(
-      `the configured class image path: ${imagePath} does not exist`
-    );
-  }
-  if (!fs.statSync(imagePath)?.isFile()) {
-    throw new WorkflowError(
-      `the configured image path: ${imagePath} is not a file`
-    );
+  let imagePath;
+  if (imageFile) {
+    imagePath = path.resolve(imageFile);
+    if (!fs.existsSync(imagePath)) {
+      throw new WorkflowError(
+        `the configured class image path: ${imagePath} does not exist`
+      );
+    }
+    if (!fs.statSync(imagePath)?.isFile()) {
+      throw new WorkflowError(
+        `the configured image path: ${imagePath} is not a file`
+      );
+    }
   }
 
   // validate video
@@ -34,19 +37,26 @@ const generateMetadata = async (pinataClient, name, description, imageFile, vide
   }
 
   // pin image
-  let { dir, name: fname } = path.parse(imagePath);
-  let metaPath = path.join(dir, `${fname}.meta`);
+  let metaPath, metaName, imageCid, videoCid;
 
-  let imagePinResult = await pinataClient.pinFile(imagePath, `${fname}.image`);
-  let imageCid = imagePinResult?.IpfsHash;
-  if (!imageCid) {
-    throw new WorkflowError(`failed to pin image.`);
+  if (imageFile) {
+    const { dir, name: fname } = path.parse(imagePath);
+    metaPath = path.join(dir, `${fname}.meta`);
+    metaName = fname;
+
+    const imagePinResult = await pinataClient.pinFile(imagePath, `${fname}.image`);
+    imageCid = imagePinResult?.IpfsHash;
+    if (!imageCid) {
+      throw new WorkflowError(`failed to pin image.`);
+    }
   }
 
-  let videoCid;
   if (videoFile) {
-    let { name: fname } = path.parse(videoPath);
-    let videoPinResult = await pinataClient.pinFile(videoPath, `${fname}.video`);
+    const { dir, name: fname } = path.parse(videoPath);
+    metaPath = metaPath ?? path.join(dir, `${fname}.meta`);
+    metaName = metaName ?? fname;
+
+    const videoPinResult = await pinataClient.pinFile(videoPath, `${fname}.video`);
     videoCid = videoPinResult?.IpfsHash;
     if (!videoCid) {
       throw new WorkflowError(`failed to pin video.`);
@@ -64,13 +74,19 @@ const generateMetadata = async (pinataClient, name, description, imageFile, vide
   let metadataStr = JSON.stringify(metadata, null, 2);
 
   // save metadata in the file
-  fs.writeFileSync(metaPath, metadataStr, { encoding: 'utf8' });
+  if (metaPath) {
+    fs.writeFileSync(metaPath, metadataStr, { encoding: 'utf8' });
+  }
 
   // pin metadata
-  let metaPinResult = await pinataClient.pinFile(metaPath, `${fname}.meta`);
-  let metaCid = metaPinResult?.IpfsHash;
-  if (!metaCid) {
-    throw new WorkflowError(`failed to pin metadata`);
+  let metaCid;
+  if (metaName) {
+    const metaPinResult = await pinataClient.pinFile(metaPath, `${metaName}.meta`);
+    metaCid = metaPinResult?.IpfsHash;
+
+    if (!metaCid) {
+      throw new WorkflowError(`failed to pin metadata`);
+    }
   }
   return { metaCid, imageCid, videoCid };
 };

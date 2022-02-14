@@ -70,7 +70,7 @@ Note:
 - If the calculated row numbers fall outside of the number of rows in the csv file (e.x. `offset+count-1 > last_row_number_in_the_file`) the minting will stop after the last row number.
 - The `instance.metadata.imageFile` specifies the file path that contains the media file that is going to be minted. 
 Path example: `/Users/user/nfts/<<image name>>.png` where `<<image name>>` will be replaced with the value in the "image name" column according to the row number in the csv datafile. 
-Additionally, you can use that template: `/Users/user/nfts/<>.png` in which the '<>' will be replaced with the row number. 
+Additionally, you can use this template: `/Users/user/nfts/<>.png` in which the '<>' will be replaced with the row number. 
 - The `instance.metadata.videoFile` specifies the file path that contains the video file that is going to be minted. Has the same naming format as `instance.metadata.imageFile`. 
 
 ## Running a workflow

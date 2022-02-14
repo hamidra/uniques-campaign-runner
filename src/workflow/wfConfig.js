@@ -64,17 +64,16 @@ const parseConfig = (cfile) => {
     // instance.metadata
     const instanceMetadata = configJson.instance.metadata;
     if (!isEmptyObject(instanceMetadata)) {
-      validateSection(configJson, 'instance.metadata', configFile);
-      validateElement(configJson, 'instance.metadata.imageFile', configFile);
+      if (instanceMetadata.imageFile) {
+        const parts = instanceMetadata.imageFile.split('/');
+        const imageFileNameTemplate = parts.pop();
+        const imageFolder = parts.join('/');
 
-      const parts = instanceMetadata.imageFile.split('/');
-      const imageFileNameTemplate = parts.pop();
-      const imageFolder = parts.join('/');
+        configJson.instance.metadata.imageFolder = path.resolve(imageFolder);
+        configJson.instance.metadata.imageFileNameTemplate = imageFileNameTemplate;
 
-      configJson.instance.metadata.imageFolder = path.resolve(imageFolder);
-      configJson.instance.metadata.imageFileNameTemplate = imageFileNameTemplate;
-
-      validateFileExists(configJson.instance.metadata.imageFolder, 'instance.metadata.imageFile');
+        validateFileExists(configJson.instance.metadata.imageFolder, 'instance.metadata.imageFile');
+      }
 
       if (instanceMetadata.videoFile) {
         const parts = instanceMetadata.videoFile.split('/');

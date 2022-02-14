@@ -249,12 +249,15 @@ const pinAndSetImageCid = async (wfConfig) => {
     }
 
     if (i >= startRecordNo && i < endRecordNo && !metaCidColumn.records[i]) {
-      const imageFileName = formatFileName(
-        imageFileNameTemplate,
-        i + 2,
-        { header: context.data.header, records: context.data.records[i]},
-      );
-      const imageFile = path.join(imageFolder, imageFileName);
+      let imageFile;
+      if (imageFileNameTemplate) {
+        const imageFileName = formatFileName(
+          imageFileNameTemplate,
+          i + 2,
+          { header: context.data.header, records: context.data.records[i] },
+        );
+        imageFile = path.join(imageFolder, imageFileName);
+      }
 
       let videoFile;
       if (videoFileNameTemplate) {
@@ -446,17 +449,19 @@ const verifyWorkflow = async (wfConfig) => {
     for (let i = startRecordNo; i < endRecordNo; i++) {
       if (!context.data.records[i]) continue;
 
-      const imageFileName = formatFileName(
-        imageFileNameTemplate,
-        i + 2,
-        { header: context.data.header, records: context.data.records[i]},
-      );
-      const imageFile = path.join(imageFolder, imageFileName);
-
-      if (!fs.existsSync(imageFile)) {
-        throw new WorkflowError(
-          `imageFile: ${imageFile} does not exist to be minted for row: ${i + 2}`
+      if (imageFileNameTemplate) {
+        const imageFileName = formatFileName(
+          imageFileNameTemplate,
+          i + 2,
+          { header: context.data.header, records: context.data.records[i] },
         );
+        const imageFile = path.join(imageFolder, imageFileName);
+
+        if (!fs.existsSync(imageFile)) {
+          throw new WorkflowError(
+            `imageFile: ${imageFile} does not exist to be minted for row: ${i + 2}`
+          );
+        }
       }
 
       if (videoFileNameTemplate) {
