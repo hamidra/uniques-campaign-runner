@@ -11,13 +11,13 @@ const {
 const { generateSecret } = require('./giftSecrets');
 const { mintClassInstances } = require('./mint');
 const { transferFunds } = require('./balanceTransfer');
-const { columnTitles, loadContext, getContext } = require('./context');
+const { columnTitles, checkPreviousCheckpoints, loadContext, getContext } = require('./context');
 const { signAndSendTx } = require('../chain/txHandler');
 const inqAsk = inquirer.createPromptModule();
 const { parseConfig } = require('./wfConfig');
 const { WorkflowError } = require('../Errors');
 const { fillTemplateFromData } = require('../utils/csv');
-const { isEmptyObject } = require('../utils/validation');
+const { isNumber, isEmptyObject } = require('../utils');
 
 const createClass = async (wfConfig) => {
   // 1- create class
@@ -28,7 +28,7 @@ const createClass = async (wfConfig) => {
   // if a valid class is not already created or does not exist, create the class
   if (context.class.id === undefined || wfConfig.class?.id !== context.class.id) {
     // check the specified class does not exist
-    let cfgClassId = wfConfig.class?.id;
+    let cfgClassId = wfConfig.class.id;
     let uniquesClass = await api.query.uniques.class(cfgClassId);
     if (uniquesClass?.isSome) {
       // class already exists ask user if they want to mint in the same class
@@ -198,13 +198,21 @@ const mintInstancesInBatch = async (wfConfig) => {
       instanceIdColumn.records.push('');
     }
     if (i >= startRecordNo && i < endRecordNo) {
-      instanceIdColumn.records[i] = currentInstanceId + 1;
+      instanceIdColumn.records[i] = currentInstanceId;
       currentInstanceId += 1;
     }
   }
   context.data.setColumns([instanceIdColumn]);
   if (!dryRun) context.data.checkpoint();
 };
+
+const formatFileName = (fileNameTemplate, rowNumber, { header, records }) => {
+  if (fileNameTemplate.includes('<>')) {
+    return fileNameTemplate.replace('<>', rowNumber);
+  }
+
+  return fillTemplateFromData(fileNameTemplate, header, records);
+}
 
 const pinAndSetImageCid = async (wfConfig) => {
   // 5- pin images and generate metadata
@@ -215,7 +223,7 @@ const pinAndSetImageCid = async (wfConfig) => {
   const instanceMetadata = wfConfig?.instance?.metadata;
   if (isEmptyObject(instanceMetadata)) return;
 
-  const { name, description, imageFolder, extension } = instanceMetadata;
+  const { name, description, imageFolder, fileNameTemplate } = instanceMetadata;
 
   const [imageCidColumn, metaCidColumn] = context.data.getColumns([
     columnTitles.imageCid,
@@ -231,26 +239,26 @@ const pinAndSetImageCid = async (wfConfig) => {
     }
 
     if (i >= startRecordNo && i < endRecordNo && !metaCidColumn.records[i]) {
-      let metaCid, imageCid;
-      if (!dryRun) {
-        let imageFile = path.join(imageFolder, `${i + 2}.${extension}`);
-        // fill template description to build the description string
-        let instanceDescription = fillTemplateFromData(
-          description,
-          context.data.header,
-          context.data.records[i]
-        );
+      let imageFileName = formatFileName(
+        fileNameTemplate,
+        i + 2,
+        { header: context.data.header, records: context.data.records[i]},
+      );
+      let imageFile = path.join(imageFolder, imageFileName);
 
-        ({ metaCid, imageCid } = await generateMetadata(
-          context.pinataClient,
-          name,
-          instanceDescription,
-          imageFile,
-        ));
-      } else {
-        metaCid = randomAsHex(23).replace('0x', '');
-        imageCid = randomAsHex(23).replace('0x', '');
-      }
+      // fill template description to build the description string
+      let instanceDescription = fillTemplateFromData(
+        description,
+        context.data.header,
+        context.data.records[i]
+      );
+
+      const { metaCid, imageCid } = await generateMetadata(
+        context.pinataClient,
+        name,
+        instanceDescription,
+        imageFile,
+      );
 
       imageCidColumn.records[i] = imageCid;
       metaCidColumn.records[i] = metaCid;
@@ -297,8 +305,8 @@ const setInstanceMetadata = async (wfConfig) => {
   }
 
   if (
-    !instanceIdColumn.records?.[startRecordNo] ||
-    !instanceIdColumn.records?.[endRecordNo - 1]
+    !isNumber(instanceIdColumn?.records?.[startRecordNo]) ||
+    !isNumber(instanceIdColumn?.records?.[endRecordNo - 1])
   ) {
     throw new WorkflowError(
       'No instanceId checkpoint is recorded or the checkpoint is not in a correct state.'
@@ -411,10 +419,18 @@ const verifyWorkflow = async (wfConfig) => {
   // check image files
   const instanceMetadata = wfConfig?.instance?.metadata;
   if (!isEmptyObject(instanceMetadata)) {
-    const { imageFolder, extension } = instanceMetadata;
+    const { imageFolder, fileNameTemplate } = instanceMetadata;
 
     for (let i = startRecordNo; i < endRecordNo; i++) {
-      const imageFile = path.join(imageFolder, `${i + 2}.${extension}`);
+      if (!context.data.records[i]) continue;
+
+      const imageFileName = formatFileName(
+        fileNameTemplate,
+        i + 2,
+        { header: context.data.header, records: context.data.records[i]},
+      );
+      const imageFile = path.join(imageFolder, imageFileName);
+
       if (!fs.existsSync(imageFile)) {
         throw new WorkflowError(
           `imageFile: ${imageFile} does not exist to be minted for row: ${i + 2}`
@@ -448,6 +464,7 @@ const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
   }
   console.log('setting the context for the workflow ...');
 
+  await checkPreviousCheckpoints();
   await loadContext(config);
   let context = getContext();
 
