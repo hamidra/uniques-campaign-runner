@@ -63,7 +63,7 @@ const createClass = async (wfConfig) => {
     // set the class checkpoint
     if (!dryRun) context.class.checkpoint();
   } else {
-    console.log('class information loaded from the checkpoint file');
+    console.log('Class information loaded from the checkpoint file');
   }
 };
 
@@ -107,7 +107,7 @@ const setClassMetadata = async (wfConfig) => {
       if (!dryRun) context.class.checkpoint();
     }
   } else {
-    console.log('re-using class metadata from the checkpoint');
+    console.log('Re-using class metadata from the checkpoint');
   }
 };
 
