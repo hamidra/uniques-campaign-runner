@@ -252,6 +252,7 @@ const checkPreviousCheckpoints = async () => {
   if (answer?.continueFromCheckpoint) return;
 
   removeCheckpoints();
+  console.log('Previous checkpoints removed');
 }
 
 module.exports = { columnTitles: columnTitles, checkPreviousCheckpoints, loadContext, getContext };
