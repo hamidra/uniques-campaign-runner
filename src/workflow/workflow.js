@@ -22,6 +22,7 @@ const { isNumber, isEmptyObject } = require('../utils');
 
 const successMessage = chalk.green;
 const stepTitle = chalk.underline;
+const importantMessage = chalk.bold;
 
 const createClass = async (wfConfig) => {
   // 1- create class
@@ -138,11 +139,7 @@ const generateGiftSecrets = async (wfConfig) => {
   }
   if (isUpdated) {
     context.data.setColumns([secretColumn, addressColumn]);
-    if (!dryRun) {
-      context.data.checkpoint();
-    } else {
-      console.log(successMessage('secrets generated'));
-    }
+    if (!dryRun) context.data.checkpoint();
   }
 };
 
@@ -458,10 +455,11 @@ const enableDryRun = async () => {
   }
 
   context.dryRun = true;
-  console.log(chalk.bold`\ndry-run mode is on`);
 };
 
 const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
+  if (dryRunMode) console.log(importantMessage`\ndry-run mode is on`);
+
   console.log('> loading the workflow config ...');
   let { error, config } = parseConfig(configFile);
 
@@ -518,7 +516,7 @@ const runWorkflow = async (configFile = './src/workflow.json', dryRunMode) => {
     // move the final data file to the output path, cleanup the checkpoint files.
     let outFilename = config?.instance?.data?.outputCsvFile;
     context.data.writeFinalResult(outFilename);
-    console.info(chalk.bold`\n\nThe final datafile is copied at \n ${outFilename}`);
+    console.info(importantMessage`\n\nThe final datafile is copied at \n ${outFilename}`);
   }
 
   // cleanup the workspace, remove checkpoint files
