@@ -66,7 +66,7 @@ const generateMetadata = async (pinataClient, name, description, imageFile, vide
   // create metadata
   let metadata = {
     name: name,
-    image: `ipfs://ipfs/${imageCid}`,
+    image: imageCid ? `ipfs://ipfs/${imageCid}` : undefined,
     animation_url: videoCid ? `ipfs://ipfs/${videoCid}` : undefined,
     description,
   };
