@@ -1,12 +1,10 @@
 #!/usr/bin/env node
 
 const { Command } = require('commander');
-const chalk = require('chalk');
 const { runWorkflow } = require('./workflow/workflow');
+const { errorMessage, finalMessage } = require('./utils/styles');
 const { WorkflowError } = require('./Errors');
 const program = new Command();
-
-const errorMessage = chalk.red;
 
 program.version('0.0.1');
 
@@ -15,7 +13,7 @@ program
   .option('--dry-run', 'Enable dry-run')
   .action(async (workflowConfig, options) => {
     await runWorkflow(workflowConfig, options.dryRun ?? false);
-    console.log(chalk.bold`\ndone!`);
+    console.log(finalMessage('\ndone!'));
   });
 
 program
