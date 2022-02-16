@@ -28,6 +28,7 @@ const columnTitles = {
   secret: 'gift account secret',
   address: 'gift account address',
   imageCid: 'image cid',
+  videoCid: 'video cid',
   metaCid: 'metadata cid',
   lastMintBatch: 'last minted batch',
   lastMetadataBatch: 'last metadata batch',
@@ -256,4 +257,4 @@ const checkPreviousCheckpoints = async () => {
   console.log(systemMessage('Previous checkpoints removed'));
 }
 
-module.exports = { columnTitles: columnTitles, checkPreviousCheckpoints, loadContext, getContext };
+module.exports = { columnTitles, checkPreviousCheckpoints, loadContext, getContext };
