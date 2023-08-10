@@ -1,3 +1,6 @@
+> 🚨 🚚   
+**uniques-campaign-runner** has been moved to a new location. For the updated version of the cli refer to [this repository](https://github.com/paritytech/nfts-campaign-runner)
+
 # uniques-campaign-runner
 
 A cli tool to automate running NFT campaign workflows on substrate-uniques-pallet in bulk.  
